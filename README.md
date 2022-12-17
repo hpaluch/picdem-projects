@@ -9,11 +9,10 @@ There are 2 programming guides for PICDEM board:
 * recent using MPLAB X IDE  and XC C compiler:
   - https://ww1.microchip.com/downloads/en/DeviceDoc/40001369C.pdf
 
-Here are my Symbols and Packages created in [ExpressPCB Classic][ExpressPCB]
+Here are my Components created in [ExpressPCB Classic][ExpressPCB]
 version 7.9.0.
-To install those Custom symbols copy:
+To install those Custom components copy:
 - `ExpressPCB\SchComponents_Custom\` to `%USERPROFILE%\Documents\ExpressPCB\SchComponents_Custom\` (packages)
-- `ExpressPCB\SchSymbols_Custom\` to `%USERPROFILE%\Documents\ExpressPCB\SchSymbols_Custom\` (symbols)
 
 # List of MCUs
 
