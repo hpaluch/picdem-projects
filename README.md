@@ -14,6 +14,17 @@ version 7.9.0.
 To install those Custom components copy:
 - `ExpressPCB\SchComponents_Custom\` to `%USERPROFILE%\Documents\ExpressPCB\SchComponents_Custom\` (packages)
 
+# List of Projects
+
+## Project: PIC16F88 ADC Sound
+
+* [pic16f88-adc-sound.X/](pic16f88-adc-sound.X/)
+  - read potentiometer angle using ADC - values are 0 to 0x3ff (1023)
+  - output speaker tone based on ADC - TODO
+  - TODO: currently there is fixed sound using Delay loop
+
+![PIC16F88 ADC Soun Schematic](https://raw.githubusercontent.com/hpaluch/picdem-projects/master/ ExpressPCB/pic16f88-adc-sound.png)
+
 # List of MCUs
 
 Officially [PICDEM Lab Development Kit][DM163045]  includes these MCUs:
