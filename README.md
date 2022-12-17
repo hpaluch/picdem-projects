@@ -21,9 +21,13 @@ To install those Custom components copy:
 * [pic16f88-adc-sound.X/](pic16f88-adc-sound.X/)
   - read potentiometer angle using ADC - values are 0 to 0x3ff (1023)
   - output speaker tone based on ADC - TODO
-  - TODO: currently there is fixed sound using Delay loop
+  - TODO: currently there is fixed sound using Timer1
 
 ![PIC16F88 ADC Soun Schematic](https://raw.githubusercontent.com/hpaluch/picdem-projects/master/ExpressPCB/pic16f88-adc-sound.png)
+
+Best lesson learned:
+- Unlike Timer0, the Timer1 and Timer2 are considered as *peripherals*,
+  so additionally PEIE must be enabled to receive interrupts(!)
 
 # List of MCUs
 

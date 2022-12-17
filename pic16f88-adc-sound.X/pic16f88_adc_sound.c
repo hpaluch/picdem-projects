@@ -56,10 +56,38 @@ const u16 ADC_MAX_VALUE = 0x3ff;
 #define fSPKR_MASK  _PORTA_RA1_MASK
 volatile unsigned char vLATA = 0;
 
-void toggle_SPKR(void)
+volatile u16 wTimer1 = 0;
+
+// NOTE: Always load TMR1H first to avoid spurious overflow
+#define DEMO_LOAD_TIMER(x) \
+   TMR1H = (u8) ( (x) >> 8); \
+   TMR1L = (u8) ( (x) & 8);
+
+
+void click_few_times(u16 cycles)
 {
-    vLATA = vLATA ^ fSPKR_MASK;
-    PORTA = vLATA;
+    u16 i;
+    for(i=0;i!=cycles;i++){
+        vLATA = vLATA ^ fSPKR_MASK;
+        PORTA = vLATA;
+        __delay_ms(10);
+    }   
+}
+
+void __interrupt() pic8int(void)
+{
+    // when Timer1 Interrupt is enabled
+    // && Timer1 Interrupt Overflow occurred
+    if(PIE1bits.TMR1IE && PIR1bits.TMR1IF){
+        // flip speaker output
+        vLATA = vLATA ^ fSPKR_MASK;
+        PORTA = vLATA;
+        // preload timer from wTimer1
+        // WARNING! There is always additional latency between Timer1
+        // overflow and this reload....
+        DEMO_LOAD_TIMER(wTimer1);
+        PIR1bits.TMR1IF = 0; // ack overflow interrupt
+    }
 }
 
 u16 read_ADC(void)
@@ -78,11 +106,11 @@ u16 read_ADC(void)
 
 void main(void) {
     
-        // initialize PINs as soon as possible
+    // initialize PINs as soon as possible
     PORTA = 0; // ensure defined values on output latches
     TRISA = (u8) ~ fSPKR_MASK; // disable all outputs, expect LED on RA1
     PORTB = 0;
-    TRISB = (u8) ~0; // all PORTB are inputs
+    TRISB = (u8) ~0; // all PORTB as outputs - to avoid floating Digital Inputs
 
     // ADC setup
     // 1. enable Digital I/O on RA1 (Flash LED), ensure that RA0 is Analog Input
@@ -102,11 +130,28 @@ void main(void) {
     // wait until OSC is stable, otherwise we will screw up 1st
     // call of __delay_ms() !!! it will be much slower then expected!!
     while(OSCCONbits.IOFS == 0){/*nop*/};
-    
-    // default: output 500 Hz Tone on speaker using Delay loop
+
+    click_few_times(100); // click for around 1s
+    // Timer1 setup
+    // 1:1 prescaler, using system clock (1MHz)
+    T1CON = 0;
+    // preload timer for 2 KHz = speaker 1 KHz
+    wTimer1 = 65535-500;
+    DEMO_LOAD_TIMER(wTimer1);
+    PIR1bits.TMR1IF = 0;
+    // Enable timer1 interrupts
+    PIE1bits.TMR1IE = 1;
+    // Enable Timer1
+    T1CONbits.TMR1ON = 1;
+    // Unlike Timer0, both Timer1 and Timer2 are considered as PERIPHERAL
+    // so PEIE must be set to receive interrupts !!!
+    // see "Figure 8-1: Interrupt Logic"
+    //     in "PICmicro Mid-Range MCU Family Reference Manual"
+    INTCONbits.PEIE = 1;
+    // Enable interrupts globally
+    ei();   
     while(1){
-        toggle_SPKR();
-        __delay_ms(1);
+        // TODO: ADC stuff
     }
     
     return;
