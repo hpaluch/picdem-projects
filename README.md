@@ -23,7 +23,7 @@ To install those Custom components copy:
   - output speaker tone based on ADC - TODO
   - TODO: currently there is fixed sound using Delay loop
 
-![PIC16F88 ADC Soun Schematic](https://raw.githubusercontent.com/hpaluch/picdem-projects/master/ ExpressPCB/pic16f88-adc-sound.png)
+![PIC16F88 ADC Soun Schematic](https://raw.githubusercontent.com/hpaluch/picdem-projects/master/ExpressPCB/pic16f88-adc-sound.png)
 
 # List of MCUs
 
