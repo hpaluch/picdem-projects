@@ -1,0 +1,12 @@
+# MPLAB files that use Unix EOL
+Makefile text eol=lf
+
+# Distinghish Express PCB binary filse and Assembler *.s files
+/ExpressPCB/**/*.s binary
+# ExpressPCB packages
+*.p
+*.png binary
+*.jpg binary
+# ExpressPCB
+*.sch binary
+

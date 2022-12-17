@@ -1,0 +1,21 @@
+*~
+*.bak
+*.tmp
+*.swp
+
+# ExpressPCB temporary files
+*.bmp
+# PhotoScape files
+Originals/
+*.db
+
+.generated_files/
+private/
+build/
+debug/
+dist/
+disassembly/
+production/
+Package-*
+Makefile-*
+
