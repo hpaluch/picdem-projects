@@ -25,7 +25,7 @@ To install those Custom components copy:
   - example ADC=0 (potentiometer set to ground), speaker period
     is 1 ms (1 000 Hz)
   - example ADC=1023 (0x3ff) - when potentiometer set to +5V voltage,
-    speaker period is 2024 us (1000us + 1024).
+    speaker period is 2023 us (1000us + 1023).
   - also ADC value is send to UART so we can see on Digital Analyzer what ADC value
     was used for Speaker period.
 
