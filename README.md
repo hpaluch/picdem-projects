@@ -20,7 +20,7 @@ To install those Custom components copy:
 
 * [pic16f88-adc-sound.X/](pic16f88-adc-sound.X/)
   - read potentiometer angle using ADC - values are 0 to 0x3ff (1023)
-  - output on speaker where period is 1 ms + every $1\,\mu s$ (micro-second)
+  - output on speaker where period is 1 ms + every $1 \, \mu s$ (micro-second)
     for +1 increment from ADC.
   - example ADC=0 (potentiometer set to ground), speaker period
     is 1 ms (1 000 Hz)
