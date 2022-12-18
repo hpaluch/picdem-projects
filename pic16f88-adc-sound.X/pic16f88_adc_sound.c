@@ -7,6 +7,8 @@
  *     I/O: - RA0/AN0/PIN17 ADC potentiometer input, channel 0
  *          - RA1/AN1/PIN18 sound output, period by pot
  *          - RA6/OSC2/CLKO/PIN15 - fOSC/4 => 8 MHz /4 =>  2 MHz
+ *          - RB5/SS/TX/CK/PIN11 - UART transmitting 2 bytes of ADC value
+ *            every 100ms, 19200Bd,8-bit,1-stop, no-parity
  *  DevKit: DM163045 - PICDEM Lab Development Kit
  *     MCU: PIC16F88 PDIP
  *      SW: MPLAB X IDE v6.05, XC8 v2.40, DFP 1.3.42
@@ -92,19 +94,14 @@ void __interrupt() pic8int(void)
     }
 }
 
-u16 read_ADC(void)
-{
-    u16 tmp;
-    
-    ADCON0bits.GO_DONE = 1;
-    while(ADCON0bits.GO_DONE){
-        // nop
+// send character in 'c' via UART from PIC to PC
+void uart_tx(u8 c){
+    // wait until UART is ready for TX
+    while( PIR1bits.TXIF == 0){
+        NOP();
     }
-    tmp = ADRESH;
-    tmp <<= 8;
-    tmp |= ADRESL;
-    return tmp;
-}
+    TXREG = c;
+} 
 
 void main(void) {
     u16 oldCcPr=0;
@@ -167,6 +164,20 @@ void main(void) {
     // see "Figure 8-1: Interrupt Logic"
     //     in "PICmicro Mid-Range MCU Family Reference Manual"
     INTCONbits.PEIE = 1;
+    
+    // Finally prepare UART Transmitter
+    // 1. baud rate 19200, DS30487D, page 101, table 11-6
+    SPBRG = 25;
+    // 2.set TXSTA - SYNC must be cleared, BRGH=1 for better precision
+    TXSTA = _TXSTA_BRGH_MASK;             
+    // 3. set TRISB as input - see DS30487D-page 97
+    //TRISBbits.TRISB2 = 1; // RB2 - RX input - unused so far
+    TRISBbits.TRISB5 = 1; // we use only RB5 - TX output only so far
+    // 4. must enable SPEN
+    RCSTA = _RCSTA_SPEN_MASK;
+    // 5. enable transmit - TXEN=1
+    TXSTAbits.TXEN = 1; 
+    
     // Enable interrupts globally
     ei();   
     while(1){
@@ -191,6 +202,9 @@ void main(void) {
             CCPR1L = (u8)(wCcPr & 0xff);
             oldCcPr = wCcPr;
         }
+        // always transmit ADC value on UART
+        uart_tx( (u8)(adc >> 8)); // MSB first
+        uart_tx( (u8)(adc & 0xff)); // LSB next
     }
     
     return;
