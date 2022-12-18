@@ -20,12 +20,12 @@ To install those Custom components copy:
 
 * [pic16f88-adc-sound.X/](pic16f88-adc-sound.X/)
   - read potentiometer angle using ADC - values are 0 to 0x3ff (1023)
-  - output on speaker where period is 1 ms + every 1us (micro-second)
+  - output on speaker where period is 1 ms + every $1\,\mu s$ (micro-second)
     for +1 increment from ADC.
   - example ADC=0 (potentiometer set to ground), speaker period
     is 1 ms (1 000 Hz)
   - example ADC=1023 (0x3ff) - when potentiometer set to +5V voltage,
-    speaker period is 2023 us (1000us + 1023).
+    speaker period is $2023\,\mu s$ ($1000\,mu s + 1023$).
   - also ADC value is send to UART so we can see on Digital Analyzer what ADC value
     was used for Speaker period.
 
@@ -39,7 +39,8 @@ In above example:
 - trigger set on UART pin, failing edge.
 - potentiometer set to maximum Voltage, ADC has maximum value 0x3FF (1023) - see that on `UART_ADC` decoded
   digital pin
-- measured period is 2.015 ms, should be 2.023 ms
+- measured period is 2.015 ms, should be 2.023 ms, However it matches instruction cycle frequency error
+  (1% in my case - 2.01 MHz instead of 2.00 MHz)
 
 List of used [PIC16F88][PIC16F88] pins:
 - `RA0/AN0/PIN17` ADC potentiometer input, channel 0 (AN0)
@@ -60,7 +61,10 @@ Best lesson learned:
   > Also note that  `CCP1CON=0x0b` => "Compare mode,
   > generate software interrupt on match (CCP1IF bit is set, CCP1 pin is
   > unaffected)" - is unusable, because it does not Reset Timer0 on 
-  > Compare event.
+  > Compare event. However there is nice trick in [AN594][AN594] - rolling over CCP registers
+  > on each interrupt (adding new period to existing value in CCP). However I still prefer using special
+  > event where all Timer1 housekeeping is done automatically (with the exception of flipping pulse
+  > in IRQ handler)
 
 Please note that unlike many other examples we use INTRC frequency 8 MHz, so Instruction
 clock is 2 MHz, this allow as to increment Timer1 period in 0.5us steps and thus speaker
@@ -83,6 +87,7 @@ My revised PICDEM board additionally includes these MCUs:
 * [PIC16F88][PIC16F88] - my favorite, has ICD (hardware debugger support)
 
 
+[AN594]: https://www.microchip.com/en-us/application-notes/an594 "Using the CCP Module(s)"
 [DM163045]: http://www.microchip.com/Developmenttools/ProductDetails/DM163045 "PICDEM Lab Development Kit"
 [PIC10F206]: https://www.microchip.com/en-us/product/PIC10F206
 [PIC12F615]: https://www.microchip.com/en-us/product/PIC12F615
