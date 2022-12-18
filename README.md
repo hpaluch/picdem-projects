@@ -20,12 +20,12 @@ To install those Custom components copy:
 
 * [pic16f88-adc-sound.X/](pic16f88-adc-sound.X/)
   - read potentiometer angle using ADC - values are 0 to 0x3ff (1023)
-  - output on speaker where period is 1 ms + every $1 \; \mu s$ (micro-second)
+  - output on speaker where period is 1 ms + every $1 \\, \mu s$ (micro-second)
     for +1 increment from ADC.
   - example ADC=0 (potentiometer set to ground), speaker period
     is 1 ms (1 000 Hz)
   - example ADC=1023 (0x3ff) - when potentiometer set to +5V voltage,
-    speaker period is $2023\,\mu s$ ( $1000\,mu s + 1023$ ).
+    speaker period is $2023 \\, \mu s$ ( $1000 \\, \mu s + 1023$ ).
   - also ADC value is send to UART so we can see on Digital Analyzer what ADC value
     was used for Speaker period.
 
@@ -85,6 +85,12 @@ My revised PICDEM board additionally includes these MCUs:
 * [PIC16F630][PIC16F630]
 * [PIC16F690][PIC16F690]
 * [PIC16F88][PIC16F88] - my favorite, has ICD (hardware debugger support)
+
+# Other notes
+
+GitHub.com incorrectly parser TeX spacing characters in inline math (`$ ... $`), for example `$1 \, s$`
+as reported on https://github.com/community/community/discussions/17143.
+Workaround is to double `\` which however breaks TeX syntax...
 
 
 [AN594]: https://www.microchip.com/en-us/application-notes/an594 "Using the CCP Module(s)"
