@@ -20,14 +20,14 @@ To install those Custom components copy:
 
 * [pic16f88-adc-sound.X/](pic16f88-adc-sound.X/)
   - read potentiometer angle using ADC - values are 0 to 0x3ff (1023)
-  - output on speaker where period is 1 ms + every 2us (micro-second)
+  - output on speaker where period is 1 ms + every 1us (micro-second)
     for +1 increment from ADC.
   - example ADC=0 (potentiometer set to ground), speaker period
     is 1 ms (1 000 Hz)
   - example ADC=1023 (0x3ff) - when potentiometer set to +5V voltage,
-    speaker period is 3048 us (1000us + 2*1024).
+    speaker period is 2024 us (1000us + 1024).
 
-![PIC16F88 ADC Soun Schematic](https://raw.githubusercontent.com/hpaluch/picdem-projects/master/ExpressPCB/pic16f88-adc-sound.png)
+![PIC16F88 ADC Sound Schematic](https://raw.githubusercontent.com/hpaluch/picdem-projects/master/ExpressPCB/pic16f88-adc-sound.png)
 
 Best lesson learned:
 - Unlike Timer0, the Timer1 and Timer2 are considered as *peripherals*,
@@ -43,6 +43,13 @@ Again please note that  `CCP1CON=0x0b` => "Compare mode,
 generate software interrupt on match (CCP1IF bit is set, CCP1 pin is
 unaffected)" - is unusable, because it does not Reset Timer0 on 
 Compare event.
+
+Please note that unlike many other examples we use INTRC frequency 8 MHz, so Instruction
+clock is 2 MHz, this allow as to increment Timer1 period in 0.5us steps and thus speaker
+period by 1us  steps (2 times longer). Here is scope from `RA6/OSC2/CLKO/PIN15`:
+
+![PIC16F88 ADC Sound Instruction clock](https://raw.githubusercontent.com/hpaluch/picdem-projects/master/pic16f88-adc-sound.X/assets/ad2-fosc-div4.png)
+
 
 # List of MCUs
 

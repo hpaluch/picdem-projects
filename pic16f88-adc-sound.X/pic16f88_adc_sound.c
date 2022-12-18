@@ -2,10 +2,11 @@
  * File:   pic16f88_adc_sound.c
  * Summary:
  *          1. read potentiometer value with ADC on AN0/PIN17
- *          3. produce sound on speaker on RA1, period is 1,000.0 us + ADC*2
- *             for ADC=3 period is 1000 + 3*2 = 1,006.0 us
+ *          3. produce sound on speaker on RA1, period is 1,000.0 us + ADC
+ *             for ADC=3 period is 1000 + 3 = 1,003.0 us
  *     I/O: - RA0/AN0/PIN17 ADC potentiometer input, channel 0
  *          - RA1/AN1/PIN18 sound output, period by pot
+ *          - RA6/OSC2/CLKO/PIN15 - fOSC/4 => 8 MHz /4 =>  2 MHz
  *  DevKit: DM163045 - PICDEM Lab Development Kit
  *     MCU: PIC16F88 PDIP
  *      SW: MPLAB X IDE v6.05, XC8 v2.40, DFP 1.3.42
@@ -45,6 +46,8 @@ typedef uint8_t u8;
 typedef uint16_t u16;
 typedef uint32_t u32;
 
+// Timer1 Period Base
+const u16 PERIOD_BASE = 1000;
 const u16 ADC_MAX_VALUE = 0x3ff;
 
 // show to user which mode is compiled
@@ -130,7 +133,7 @@ void main(void) {
     ADCON0bits.ADON = 1;
  
     // OSC setup
-    OSCCONbits.IRCF = 0b110;    // f = 4 MHz => 1 MHz instruction clock
+    OSCCONbits.IRCF = 0b111;    // f = 8 MHz => 2 MHz instruction clock
     // wait until OSC is stable, otherwise we will screw up 1st
     // call of __delay_ms() !!! it will be much slower then expected!!
     while(OSCCONbits.IOFS == 0){/*nop*/};
@@ -148,9 +151,8 @@ void main(void) {
     // NOTE: We can't use "Software Interrupt mode", because it
     // does NOT reset TMR1 on compare
     CCP1CON = 0x0b;
-    // preload Capture Compare Period for 1ms (1000 Hz) - need 2 interrupts
-    // so we preload Hz / 2, for 1000 Hz -> 500
-    wCcPr = 500;
+    // preload Capture Compare Period for 500us (2000 Hz) - need 2 interrupts
+    wCcPr = PERIOD_BASE;
     oldCcPr = wCcPr;
     CCPR1H = (u8)(wCcPr >> 8);
     CCPR1L = (u8)(wCcPr & 0xff);
@@ -179,9 +181,11 @@ void main(void) {
         adc |= ADRESL;
 
         // basically we add ADC to 1 ms, so for ADC = 100,
-        // we have 1000us+2*100us
-        // so every ADC step adds 2us
-        wCcPr = 500 + adc;
+        // we have 1000us+100us
+        // so every ADC step adds 1us
+        // Please note that speaker frequency is /2, so we use Instruction
+        // clock 2 MHz instead of 1 MHz to compensate
+        wCcPr = PERIOD_BASE + adc;
         if (wCcPr != oldCcPr){
             CCPR1H = (u8)(wCcPr >> 8);
             CCPR1L = (u8)(wCcPr & 0xff);
