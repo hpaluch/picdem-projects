@@ -20,14 +20,29 @@ To install those Custom components copy:
 
 * [pic16f88-adc-sound.X/](pic16f88-adc-sound.X/)
   - read potentiometer angle using ADC - values are 0 to 0x3ff (1023)
-  - output speaker tone based on ADC - TODO
-  - TODO: currently there is fixed sound using Timer1
+  - output on speaker where period is 1 ms + every 2us (micro-second)
+    for +1 increment from ADC.
+  - example ADC=0 (potentiometer set to ground), speaker period
+    is 1 ms (1 000 Hz)
+  - example ADC=1023 (0x3ff) - when potentiometer set to +5V voltage,
+    speaker period is 3048 us (1000us + 2*1024).
 
 ![PIC16F88 ADC Soun Schematic](https://raw.githubusercontent.com/hpaluch/picdem-projects/master/ExpressPCB/pic16f88-adc-sound.png)
 
 Best lesson learned:
 - Unlike Timer0, the Timer1 and Timer2 are considered as *peripherals*,
   so additionally PEIE must be enabled to receive interrupts(!)
+- The only way to to have fine period control on Timer1 AND automatically
+  RESET Timer1 on overflow is to use so called:
+
+  > `CCP1CON=0x0b` => Compare mode, trigger special event (CCP1IF bit is set,
+  > CCP1 pin is unaffected); CCP1 resets TMR1 and starts
+  > an A/D conversion (if A/D module is enabled
+
+Again please note that  `CCP1CON=0x0b` => "Compare mode,
+generate software interrupt on match (CCP1IF bit is set, CCP1 pin is
+unaffected)" - is unusable, because it does not Reset Timer0 on 
+Compare event.
 
 # List of MCUs
 

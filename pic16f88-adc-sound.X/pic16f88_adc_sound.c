@@ -2,7 +2,8 @@
  * File:   pic16f88_adc_sound.c
  * Summary:
  *          1. read potentiometer value with ADC on AN0/PIN17
- *          3. produce sound on speaker on RA1
+ *          3. produce sound on speaker on RA1, period is 1,000.0 us + ADC*2
+ *             for ADC=3 period is 1000 + 3*2 = 1,006.0 us
  *     I/O: - RA0/AN0/PIN17 ADC potentiometer input, channel 0
  *          - RA1/AN1/PIN18 sound output, period by pot
  *  DevKit: DM163045 - PICDEM Lab Development Kit
@@ -54,15 +55,13 @@ const u16 ADC_MAX_VALUE = 0x3ff;
 #endif
 
 #define fSPKR_MASK  _PORTA_RA1_MASK
+// must be volatile because it is shared between main thread
+// and interrupt routine
 volatile unsigned char vLATA = 0;
-
-volatile u16 wTimer1 = 0;
-
-// NOTE: Always load TMR1H first to avoid spurious overflow
-#define DEMO_LOAD_TIMER(x) \
-   TMR1H = (u8) ( (x) >> 8); \
-   TMR1L = (u8) ( (x) & 8);
-
+// flag from interrupt, when ADC conversion is finished
+volatile u8 AdcDone = 0;
+// Compare Period shadow register
+u16 wCcPr = 0;
 
 void click_few_times(u16 cycles)
 {
@@ -76,17 +75,17 @@ void click_few_times(u16 cycles)
 
 void __interrupt() pic8int(void)
 {
-    // when Timer1 Interrupt is enabled
-    // && Timer1 Interrupt Overflow occurred
-    if(PIE1bits.TMR1IE && PIR1bits.TMR1IF){
+    // when CCP1 Interrupt is enabled
+    // && CCP1 Compare Interrupt occurred
+    if(PIE1bits.CCP1IE && PIR1bits.CCP1IF){
         // flip speaker output
         vLATA = vLATA ^ fSPKR_MASK;
         PORTA = vLATA;
-        // preload timer from wTimer1
-        // WARNING! There is always additional latency between Timer1
-        // overflow and this reload....
-        DEMO_LOAD_TIMER(wTimer1);
-        PIR1bits.TMR1IF = 0; // ack overflow interrupt
+        PIR1bits.CCP1IF = 0; // ack Compare interrupt
+    }
+    if(PIE1bits.ADIE && PIR1bits.ADIF){
+        AdcDone = 1;
+        PIR1bits.ADIF = 0;
     }
 }
 
@@ -105,6 +104,8 @@ u16 read_ADC(void)
 }
 
 void main(void) {
+    u16 oldCcPr=0;
+    u16 adc=0;
     
     // initialize PINs as soon as possible
     PORTA = 0; // ensure defined values on output latches
@@ -122,6 +123,9 @@ void main(void) {
     // 4. set AD conversion clock ADCON0
     //    use FRC clock, channel 0 RA0/AN0
     ADCON0 = _ADCON0_ADCS_MASK;
+    // interrupt stuff
+    PIR1bits.ADIF = 0;
+    PIE1bits.ADIE = 1;
     // 5. enable AD module - do this as separated step!
     ADCON0bits.ADON = 1;
  
@@ -132,15 +136,28 @@ void main(void) {
     while(OSCCONbits.IOFS == 0){/*nop*/};
 
     click_few_times(100); // click for around 1s
-    // Timer1 setup
-    // 1:1 prescaler, using system clock (1MHz)
+    // We use CCP in Compare mode with Software Interrupt
+    // RESET CCP first
+    CCP1CON = 0;
+    // Timer1: 1:1 prescaler, using system clock (1MHz)
     T1CON = 0;
-    // preload timer for 2 KHz = speaker 1 KHz
-    wTimer1 = 65535-500;
-    DEMO_LOAD_TIMER(wTimer1);
+    // Timer1: Reset current Timer value
+    TMR1H = 0;
+    TMR1L = 0;
+    // resets TMR1 and starts an A/D conversion (if A/D module is enabled)
+    // NOTE: We can't use "Software Interrupt mode", because it
+    // does NOT reset TMR1 on compare
+    CCP1CON = 0x0b;
+    // preload Capture Compare Period for 1ms (1000 Hz) - need 2 interrupts
+    // so we preload Hz / 2, for 1000 Hz -> 500
+    wCcPr = 500;
+    oldCcPr = wCcPr;
+    CCPR1H = (u8)(wCcPr >> 8);
+    CCPR1L = (u8)(wCcPr & 0xff);
     PIR1bits.TMR1IF = 0;
-    // Enable timer1 interrupts
-    PIE1bits.TMR1IE = 1;
+    PIR1bits.CCP1IF = 0;
+    // Enable CCP1  interrupts
+    PIE1bits.CCP1IE = 1;
     // Enable Timer1
     T1CONbits.TMR1ON = 1;
     // Unlike Timer0, both Timer1 and Timer2 are considered as PERIPHERAL
@@ -151,7 +168,25 @@ void main(void) {
     // Enable interrupts globally
     ei();   
     while(1){
-        // TODO: ADC stuff
+        // delay ADC reading loop to reduce output Jitter...
+        __delay_ms(100);
+        // wait until AdcConversion is finished (set to 1 from IRQ handler)
+        while(AdcDone==0);
+        AdcDone = 0; // prepare for next event
+        // read ADC
+        adc = ADRESH;
+        adc <<= 8;
+        adc |= ADRESL;
+
+        // basically we add ADC to 1 ms, so for ADC = 100,
+        // we have 1000us+2*100us
+        // so every ADC step adds 2us
+        wCcPr = 500 + adc;
+        if (wCcPr != oldCcPr){
+            CCPR1H = (u8)(wCcPr >> 8);
+            CCPR1L = (u8)(wCcPr & 0xff);
+            oldCcPr = wCcPr;
+        }
     }
     
     return;
