@@ -37,13 +37,11 @@
 #pragma config IESO = OFF       // Internal External Switchover bit (Internal External Switchover mode disabled)
 // #pragma config statements should precede project file includes.
 // Use project enums instead of #define for ON and OFF.
-#define  _XTAL_FREQ 4000000 // f_osc (4MHz) for __delay_ms();
+#define  _XTAL_FREQ 8000000 // f_osc (8 MHz) for __delay_ms();
 #include <xc.h>
+#include <stdint.h> // uintX_t aliases
 
 // use short typedef aliases as in Linux kernel
-#include <stdint.h>
-
-// my types - like Linux kernel
 typedef uint8_t u8;
 typedef uint16_t u16;
 typedef uint32_t u32;
@@ -109,12 +107,20 @@ void main(void) {
     
     // initialize PINs as soon as possible
     PORTA = 0; // ensure defined values on output latches
-    TRISA = (u8) ~ fSPKR_MASK; // disable all outputs, expect LED on RA1
+    TRISA = (u8) ~ fSPKR_MASK; // disable all outputs, expect Speaker on RA1
     PORTB = 0;
-    TRISB = (u8) ~0; // all PORTB as outputs - to avoid floating Digital Inputs
+    // enable weak pull-ups to avoid floating PORTB inputs
+    OPTION_REGbits.nRBPU = 1;
+    TRISB = (u8) ~0; // all PORTB as inputs
 
+    // OSC setup
+    OSCCONbits.IRCF = 0b111;    // f_osc = 8 MHz => 2 MHz instruction clock
+    // wait until OSC is stable, otherwise we will screw up 1st
+    // call of __delay_ms() !!! it will be much slower then expected!!
+    while(OSCCONbits.IOFS == 0){/*nop*/};
+    
     // ADC setup
-    // 1. enable Digital I/O on RA1 (Flash LED), ensure that RA0 is Analog Input
+    // 1. enable Digital I/O on RA1 (Speaker), ensure that RA0 is Analog Input
     ANSEL = (u8) ~ _ANSEL_ANS1_MASK; 
     // 2. set VREF/ADCON1: ADFM=1 (result Right justified),
     //    ADCS2 = divide disabled, Vref VCFG = 00B - AVdd AVss
@@ -128,14 +134,8 @@ void main(void) {
     PIE1bits.ADIE = 1;
     // 5. enable AD module - do this as separated step!
     ADCON0bits.ADON = 1;
- 
-    // OSC setup
-    OSCCONbits.IRCF = 0b111;    // f = 8 MHz => 2 MHz instruction clock
-    // wait until OSC is stable, otherwise we will screw up 1st
-    // call of __delay_ms() !!! it will be much slower then expected!!
-    while(OSCCONbits.IOFS == 0){/*nop*/};
 
-    click_few_times(100); // click for around 1s
+    click_few_times(200); // click for around 2s
     // We use CCP in Compare mode with Software Interrupt
     // RESET CCP first
     CCP1CON = 0;

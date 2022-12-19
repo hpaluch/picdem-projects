@@ -19,12 +19,12 @@ To install those Custom components copy:
 ## Project: PIC16F88 ADC Sound
 
 * [pic16f88-adc-sound.X/](pic16f88-adc-sound.X/)
-  - read potentiometer angle using ADC - values are 0 to 0x3ff (1023)
+  - read potentiometer angle using ADC - values are 0 to 1023 (0x3ff)
   - output on speaker where period is 1 ms + every $1 \\, \mu s$ (micro-second)
     for +1 increment from ADC.
-  - example ADC=0 (potentiometer set to ground), speaker period
+  - example for: ADC=0 (potentiometer set to ground), speaker period
     is 1 ms (1 000 Hz)
-  - example ADC=1023 (0x3ff) - when potentiometer set to +5V voltage,
+  - example for: ADC=1023 (0x3ff) - when potentiometer set to +5V voltage,
     speaker period is $2023 \\, \mu s$ ( $1000 \\, \mu s + 1023$ ).
   - also ADC value is send to UART so we can see on Digital Analyzer what ADC value
     was used for Speaker period.
@@ -44,8 +44,8 @@ In above example:
 
 List of used [PIC16F88][PIC16F88] pins:
 - `RA0/AN0/PIN17` ADC potentiometer input, channel 0 (AN0)
-- `RA1/AN1/PIN18` sound output, period from 1.000 ms to 2.023 ms ( 1.000ms + ADC value, where ADC_max is 1023)
-- `RA6/OSC2/CLKO/PIN15` - fOSC/4 => 8 MHz /4 =>  2 MHz
+- `RA1/AN1/PIN18` sound output, period from 1.000 ms to 2.023 ms ( 1.000ms + ADC value, where ADC max value is 1023)
+- `RA6/OSC2/CLKO/PIN15` - $f_{OSC}/4$ => 8 MHz /4 =>  2 MHz
 - `RB5/SS/TX/CK/PIN11` - UART transmitting 2 bytes of ADC value,8-data bits,1-stop bit, no-parity
 
 Best lesson learned:
@@ -60,8 +60,9 @@ Best lesson learned:
   >
   > Also note that  `CCP1CON=0x0b` => "Compare mode,
   > generate software interrupt on match (CCP1IF bit is set, CCP1 pin is
-  > unaffected)" - is unusable, because it does not Reset Timer0 on 
-  > Compare event. However there is nice trick in [AN594][AN594] - rolling over CCP registers
+  > unaffected)" - does not Reset Timer0 on 
+  > Compare event (so next period is always 65536).
+  > However there is nice trick in [AN594][AN594] - rolling over CCP registers
   > on each interrupt (adding new period to existing value in CCP). However I still prefer using special
   > event where all Timer1 housekeeping is done automatically (with the exception of flipping pulse
   > in IRQ handler)
