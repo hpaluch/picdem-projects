@@ -58,7 +58,7 @@ Best lesson learned:
   > CCP1 pin is unaffected); CCP1 resets TMR1 and starts
   > an A/D conversion (if A/D module is enabled
   >
-  > Also note that  `CCP1CON=0x0b` => "Compare mode,
+  > Also note that  `CCP1CON=0x0a` => "Compare mode,
   > generate software interrupt on match (CCP1IF bit is set, CCP1 pin is
   > unaffected)" - does not Reset Timer0 on 
   > Compare event (so next period is always 65536).
@@ -89,10 +89,9 @@ My revised PICDEM board additionally includes these MCUs:
 
 # Other notes
 
-GitHub.com incorrectly parser TeX spacing characters in inline math (`$ ... $`), for example `$1 \, s$`
+GitHub.com incorrectly parses TeX spacing characters in inline math (`$ ... $`), for example `$1 \, s$`
 as reported on https://github.com/community/community/discussions/17143.
 Workaround is to double `\` which however breaks TeX syntax...
-
 
 [AN594]: https://www.microchip.com/en-us/application-notes/an594 "Using the CCP Module(s)"
 [DM163045]: http://www.microchip.com/Developmenttools/ProductDetails/DM163045 "PICDEM Lab Development Kit"
