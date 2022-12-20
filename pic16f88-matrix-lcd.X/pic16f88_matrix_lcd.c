@@ -1,6 +1,7 @@
 /*
  * File:   pic16f88_matrix_lcd.c
  * Summary: PIC16F88 connected to matrix LCD MC16011A
+ *   The LCD is weird - it is 16x1 but characters are addressed as 8x2
  * Used PINs:
  *   - RB5/SS/TX/CK/PIN11 - blinking LED using Timer1
  *  for LCD:
@@ -11,7 +12,7 @@
  *   - RA3/AN3/VREF+/PIN2  - D3/PIN10   I/O
  *   - RB0/INT/CCP1/PIN6   - D4/PIN11   I/O
  *   - RB1/SDI/SDA/PIN7    - D5/PIN12   I/O
- *   - RB2/SDO/RX/DT       - D6/PIN13   I/O
+ *   - RB2/SDO/RX/DT/PIN8  - D6/PIN13   I/O
  *   - RB3/PGM/CCP1        - D7/PIN14   I/O
  *   
  *   - RA4/AN4/T0CKI/PIN3  - RS/PIN4    O
@@ -157,6 +158,10 @@ void LCD_send_data(u8 cmd)
     PORTA = vPORTA;
 }
 
+// Function Set:
+// 0 0 1 DL  N F x x
+// 0 0 1 1   0 0 0 0 => 0x30
+#define LCD_FN_SET 0x38
 
 void LCD_init(void)
 {
@@ -167,8 +172,8 @@ void LCD_init(void)
     __delay_ms(100);
     // Function Set:
     // 0 0 1 DL  N F x x
-    // 0 0 1 1   1 1 0 0 => 0x3c
-    LCD_set_data(0x3c);
+    // 0 0 1 1   0 0 0 0 => 0x30
+    LCD_set_data(LCD_FN_SET);
     LCD_strobe();
     // 2. Wait for more than 4.1 ms
     __delay_ms(8);
@@ -177,13 +182,14 @@ void LCD_init(void)
     __delay_ms(1);
     LCD_strobe();
     // finally do initialization sequence
-    LCD_send_cmd( 0x3c );
+    LCD_send_cmd( LCD_FN_SET );
     LCD_send_cmd( 0x0F );  // Display on/off control, cursor on, blinking
-    LCD_send_cmd( 0x07 );
+    LCD_send_cmd( 0x06 ); // entry mode set
+    LCD_send_cmd( 0x01 ); // clear screen and reset position
 }
 
 void main(void) {
-    
+    u8 c=0;
     vPORTA = 0;
     vPORTB = 0;
     PORTA = 0;
@@ -201,8 +207,12 @@ void main(void) {
     while(OSCCONbits.IOFS == 0){/*nop*/};
 
     LCD_init();
-    LCD_send_data('A');
-    LCD_send_data('B');
+    for(c='!';c<=('!'+5);c++){
+        LCD_send_data(c);
+        if (c==('!'+2)){
+            LCD_send_cmd(0x80+0x40); // set DRAM address to 2nd line
+        }
+    }  
     
     TMR0 = 0;   // defined state for TMR0
     // setup OPTION_REG
@@ -215,7 +225,7 @@ void main(void) {
         if (counter != oldCounter){
             // flip LED on every tick
             vPORTB ^= oLED_MASK;
-            PORTB = vPORTA;
+            PORTB = vPORTB;
             oldCounter = counter;
         }
     }

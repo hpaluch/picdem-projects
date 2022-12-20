@@ -79,6 +79,7 @@ Project goal: to control matrix LCD from  [PIC16F88][PIC16F88].
 - project [pic16f88-matrix-lcd.X/](pic16f88-matrix-lcd.X/)
 - LCD display: [MC16011A][MC16011A]
   - probably uses chip: [HD44780][HD44780]
+  - it is 16x1 character display operating as 8x2 (huh!)
 - Existing PIC LCD projects:
   - https://web.archive.org/web/20010212034722/http://home.iae.nl/users/pouweha/lcd/lcd2.shtml
   - https://www.microchip.com/en-us/application-notes/an587
@@ -89,10 +90,9 @@ Project goal: to control matrix LCD from  [PIC16F88][PIC16F88].
     board seems to usae similar display)
 
 Done:
-- `RA6/OSC2/CLKO/PIN15` - output instruction clock 1 MHz (to check frequency)
-- `RB5/SS/TX/CK/PIN11` - blinking LED using Timer1
+- display init and shows few characters...
 TODO:
-- connect LCD and test it
+- make transparent routines to deal with 16x1 addressed 8x2 problem.
 
 # List of MCUs
 
