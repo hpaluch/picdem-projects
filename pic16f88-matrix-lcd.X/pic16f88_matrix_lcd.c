@@ -21,7 +21,6 @@
  *   - RB4/SCK/SCL/PIN10
  * Reserved PINs:
  *   - RA5/MCLR/VPP/PIN4 - Master Clear (Reset). Input/programming voltage
- *   - RB3/PGM/CCP1/PIN9 - Low-Voltage ICSP Enable - UNUSED by PicKit3
  *   - RB6/AN5/PGC/T1OSO/T1CKI/PIN12 - ICD (Debugger) clock
  *   - RB7/AN6/PGD/T1OSI/PIN13 - In-Circuit Debugger and ICSP programming data
  *  DevKit: DM163045 - PICDEM Lab Development Kit
@@ -52,9 +51,6 @@
 #pragma config FCMEN = OFF      // Fail-Safe Clock Monitor Enable bit (Fail-Safe Clock Monitor disabled)
 #pragma config IESO = OFF       // Internal External Switchover bit (Internal External Switchover mode disabled)
 
-// My I/O ports
-#define iLED_MASK  _PORTB_RB5_MASK
-
 // show to user which mode is compiled
 #ifdef __DEBUG
 #warning Build in Debug mode
@@ -64,6 +60,13 @@
 
 #define  _XTAL_FREQ 4000000 // f_osc (4 MHz) for __delay_ms();
 #include <xc.h>
+
+// My I/O ports (i=input,o=output,io=input/output)
+#define oLED_MASK  _PORTB_RB5_MASK
+// for LCD display
+#define oLCD_RS_MASK _PORTA_RA4_MASK
+#define oLCD_RW_MASK _PORTA_RA6_MASK
+#define oLCD_E_MASK _PORTA_RA7_MASK
 
 // use short typedef aliases as in Linux kernel
 typedef uint8_t u8;
@@ -86,6 +89,99 @@ void __interrupt() pic16f_irq(void){
     }
 } 
 
+u8 glob_error_code = 0;
+void fatal_error(u8 error_code)
+{
+    glob_error_code = error_code; //for debugger
+    while(1){
+        // loop forever with very fast blinking LED
+        __delay_ms(50);
+        PORTB ^= oLED_MASK;
+    }
+}
+
+void LCD_set_data(u8 value)
+{
+    vPORTA &= 0xf0;
+    vPORTA |= (value & 0x0f);
+    vPORTB &= 0xf0;
+    vPORTB |= ( (value >> 4) & 0x0f);
+    PORTA = vPORTA;
+    PORTB = vPORTB;
+}
+
+// ensure that all data pins RA0-3,4,6,7,RB0-3 are in output mode
+void LCD_data_output_mode(u8 value)
+{
+    // set output data LATCHes before switch
+    LCD_set_data(value);
+    // now set output mode
+    TRISA = 0x20; // only RA5 input, all others are output
+    TRISB &= 0xf0;
+}
+
+
+void LCD_strobe(void)
+{
+    NOP();NOP();NOP();
+    vPORTA |= oLCD_E_MASK;
+    PORTA = vPORTA;
+    NOP();NOP();NOP();
+    vPORTA &= (u8)~ oLCD_E_MASK;
+    PORTA = vPORTA;
+    NOP();NOP();NOP();
+}
+
+void LCD_send_cmd(u8 cmd)
+{
+    vPORTA &= (u8) ~ (oLCD_E_MASK | oLCD_RS_MASK | oLCD_RW_MASK);
+    PORTA = vPORTA;
+    LCD_data_output_mode(cmd);
+    LCD_strobe();
+    __delay_ms(2); // required when we are not checking BF (Busy Flag)
+    // set all signals to idle mode
+    vPORTA &= (u8) ~ (oLCD_E_MASK | oLCD_RS_MASK | oLCD_RW_MASK);
+    PORTA = vPORTA;
+}
+
+void LCD_send_data(u8 cmd)
+{
+    vPORTA &= (u8) ~ (oLCD_E_MASK | oLCD_RS_MASK | oLCD_RW_MASK);
+    vPORTA |= oLCD_RS_MASK;
+    PORTA = vPORTA;
+    LCD_data_output_mode(cmd);
+    LCD_strobe();
+    __delay_ms(2); // required when we are not checking BF (Busy Flag)
+    // set all signals to idle mode
+    vPORTA &= (u8) ~ (oLCD_E_MASK | oLCD_RS_MASK | oLCD_RW_MASK);
+    PORTA = vPORTA;
+}
+
+
+void LCD_init(void)
+{
+    // trying "Initializing by Instruction" from HD44780.pdf
+    // ensure that I/O pins are in correct mode
+    LCD_data_output_mode(0);
+    // 1. Wait for more than 15 ms after VCC rises to 4.5 V
+    __delay_ms(100);
+    // Function Set:
+    // 0 0 1 DL  N F x x
+    // 0 0 1 1   1 1 0 0 => 0x3c
+    LCD_set_data(0x3c);
+    LCD_strobe();
+    // 2. Wait for more than 4.1 ms
+    __delay_ms(8);
+    LCD_strobe();
+    // 3. Wait for more than 100 us
+    __delay_ms(1);
+    LCD_strobe();
+    // finally do initialization sequence
+    LCD_send_cmd( 0x3c );
+    LCD_send_cmd( 0x0F );  // Display on/off control, cursor on, blinking
+    LCD_send_cmd( 0x07 );
+}
+
 void main(void) {
     
     vPORTA = 0;
@@ -103,6 +199,10 @@ void main(void) {
     // wait until OSC is stable, otherwise we will screw up 1st
     // call of __delay_ms() !!! it will be much slower then expected!!
     while(OSCCONbits.IOFS == 0){/*nop*/};
+
+    LCD_init();
+    LCD_send_data('A');
+    LCD_send_data('B');
     
     TMR0 = 0;   // defined state for TMR0
     // setup OPTION_REG
@@ -113,14 +213,9 @@ void main(void) {
     ei();                   // enable all interrupts     
     while(1){
         if (counter != oldCounter){
-            // flip PORTA on every tick
-            vPORTA ^= 0xff;
-            PORTA = vPORTA;
-            if (counter & 1){
-                // flip PORTB every second tick
-                vPORTB ^= 0xff;
-                PORTB = vPORTB;
-            }
+            // flip LED on every tick
+            vPORTB ^= oLED_MASK;
+            PORTB = vPORTA;
             oldCounter = counter;
         }
     }
