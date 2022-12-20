@@ -73,6 +73,26 @@ period by 1us  steps (2 times longer). Here is scope from `RA6/OSC2/CLKO/PIN15`:
 
 ![PIC16F88 ADC Sound Instruction clock](https://raw.githubusercontent.com/hpaluch/picdem-projects/master/pic16f88-adc-sound.X/assets/ad2-fosc-div4.png)
 
+# Project: PIC16F88 matrix LCD
+
+Project goal: to control matrix LCD from  [PIC16F88][PIC16F88].
+- project [pic16f88-matrix-lcd.X/](pic16f88-matrix-lcd.X/)
+- LCD display: [MC16011A][MC16011A]
+  - probably uses chip: [HD44780][HD44780]
+- Existing PIC LCD projects:
+  - https://web.archive.org/web/20010212034722/http://home.iae.nl/users/pouweha/lcd/lcd2.shtml
+  - https://www.microchip.com/en-us/application-notes/an587
+- Existing 16-bit PIC projects:
+  - https://www.microchip.com/en-us/application-notes/an1525 (it is oxymeter,
+    but it seems to use similar display)
+  - https://www.microchip.com/en-us/development-tool/DM240001 (Explorer 16
+    board seems to usae similar display)
+
+Done:
+- `RA6/OSC2/CLKO/PIN15` - output instruction clock 1 MHz (to check frequency)
+- `RB5/SS/TX/CK/PIN11` - blinking LED using Timer1
+TODO:
+- connect LCD and test it
 
 # List of MCUs
 
@@ -102,3 +122,7 @@ Workaround is to double `\` which however breaks TeX syntax...
 [PIC16F690]: https://www.microchip.com/en-us/product/PIC16F690
 [PIC16F88]: https://www.microchip.com/wwwproducts/en/PIC16F88 "PIC16F88 Overview"
 [ExpressPCB]:  https://www.expresspcb.com/pcb-cad-software/
+
+[MC16011A]: http://www.everbouquet.com.tw/MC16011A.html
+[HD44780]: https://www.sparkfun.com/datasheets/LCD/HD44780.pdf
+
