@@ -1,9 +1,29 @@
 /*
  * File:   pic16f88_matrix_lcd.c
  * Summary: PIC16F88 connected to matrix LCD MC16011A
- * PINS:
- *   - RA6/OSC2/CLKO/PIN15 - output instruction clock 1 MHz (to check frequency)
+ * Used PINs:
  *   - RB5/SS/TX/CK/PIN11 - blinking LED using Timer1
+ *  for LCD:
+ *     PIC16F88            LCD          Direction
+ *   - RA0/AN0/PIN17       - D0/PIN7    I/O
+ *   - RA1/AN1/PIN18       - D1/PIN8    I/O
+ *   - RA2/AN2/CVREF/PIN1  - D2/PIN9    I/O
+ *   - RA3/AN3/VREF+/PIN2  - D3/PIN10   I/O
+ *   - RB0/INT/CCP1/PIN6   - D4/PIN11   I/O
+ *   - RB1/SDI/SDA/PIN7    - D5/PIN12   I/O
+ *   - RB2/SDO/RX/DT       - D6/PIN13   I/O
+ *   - RB3/PGM/CCP1        - D7/PIN14   I/O
+ *   
+ *   - RA4/AN4/T0CKI/PIN3  - RS/PIN4    O
+ *   - RA6/OSC2/CLKO/PIN15 - R/W/PIN5   O
+ *   - RA7/OSC1/CLKI/PIN16 - E/PIN6     O
+ * Free PINs:
+ *   - RB4/SCK/SCL/PIN10
+ * Reserved PINs:
+ *   - RA5/MCLR/VPP/PIN4 - Master Clear (Reset). Input/programming voltage
+ *   - RB3/PGM/CCP1/PIN9 - Low-Voltage ICSP Enable - UNUSED by PicKit3
+ *   - RB6/AN5/PGC/T1OSO/T1CKI/PIN12 - ICD (Debugger) clock
+ *   - RB7/AN6/PGD/T1OSI/PIN13 - In-Circuit Debugger and ICSP programming data
  *  DevKit: DM163045 - PICDEM Lab Development Kit
  *     MCU: PIC16F88 PDIP
  *      SW: MPLAB X IDE v6.05, XC8 v2.40, DFP 1.3.42
@@ -11,7 +31,9 @@
  */
 
 // CONFIG1
-#pragma config FOSC = INTOSCCLK // Oscillator Selection bits (INTRC oscillator; CLKO function on RA6/OSC2/CLKO pin and port I/O function on RA7/OSC1/CLKI pin)
+// Oscillator Selection bits (INTRC oscillator;
+// port I/O function on both RA6/OSC2/CLKO pin and RA7/OSC1/CLKI pin)
+#pragma config FOSC = INTOSCIO
 #pragma config WDTE = OFF       // Watchdog Timer Enable bit (WDT disabled)
 #ifdef __DEBUG
 #pragma config PWRTE = OFF       // Power-up Timer Enable bit (PWRT disabled fo debug)
@@ -48,20 +70,34 @@ typedef uint8_t u8;
 typedef uint16_t u16;
 typedef uint32_t u32;
 
-
+// shadow variables to avoid PORTx (non-latch read-modify-write) problem
+u8 vPORTA = 0;
+u8 vPORTB = 0;
+// must be volatile because it is modified in interrupt handler
+volatile u8 counter = 0;
+u8 oldCounter = 0;
 // ISR from DS50002400C, page 7
 void __interrupt() pic16f_irq(void){
     if(INTCONbits.TMR0IE && INTCONbits.TMR0IF) {
          INTCONbits.TMR0IF = 0; // must acknowledge Timer0 interrupt
-         // toggle LED
-         PORTBbits.RB5 ^= 1;
+         // increment counter
+         // DO NOT MODIFY PORTs here - it will cause race with main thread !!!
+         counter++;
     }
 } 
 
 void main(void) {
-    //PORTA = 0;                  // set latches on PORTA to known value
-    //ANSEL = 0;                  //
-    TRISB = (u8) ~ iLED_MASK; // output our I/O ports
+    
+    vPORTA = 0;
+    vPORTB = 0;
+    PORTA = 0;
+    PORTB = 0;
+
+    // ANS5=RB6,ANS6=RB - input, used by Debugger as PGC and PGD
+    ANSEL = 0x60; // set RA0-RA4 (ANS0-toANS4) as Digital I/O
+    TRISA = 0x20; // only RA5 input (/MCLR), others as Output
+    // RB4, RB6, RB7 inputs, other outputs
+    TRISB = (u8) 0xd0; // 1101 0000
 
     OSCCONbits.IRCF = 0b110;    // 1 MHz instruction clock
     // wait until OSC is stable, otherwise we will screw up 1st
@@ -76,7 +112,17 @@ void main(void) {
     INTCONbits.TMR0IE = 1;  // enable interrupts for Timer0
     ei();                   // enable all interrupts     
     while(1){
-        // NOP
+        if (counter != oldCounter){
+            // flip PORTA on every tick
+            vPORTA ^= 0xff;
+            PORTA = vPORTA;
+            if (counter & 1){
+                // flip PORTB every second tick
+                vPORTB ^= 0xff;
+                PORTB = vPORTB;
+            }
+            oldCounter = counter;
+        }
     }
     // never reached
     return;
