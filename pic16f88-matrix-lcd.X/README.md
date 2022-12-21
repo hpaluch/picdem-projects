@@ -22,6 +22,9 @@ I bought this display around 20 years ago:
 
 ![MC16011A LCD 16x1 - Bottom](https://raw.githubusercontent.com/hpaluch/picdem-projects/master/assets/mc16011a-bottom.jpg)
 
+Here is circuit schematic: 
+
+![PIC16F88 Matrix LCD Schematic](https://raw.githubusercontent.com/hpaluch/picdem-projects/master/ExpressPCB/pic16f88-matrix-lcd.png)
 
 Details:
 - project [pic16f88-matrix-lcd.X/](pic16f88-matrix-lcd.X/)
