@@ -16,7 +16,7 @@ To install those Custom components copy:
 
 # List of Projects
 
-## Project: PIC16F88 ADC Sound
+## Project: [PIC16F88 ADC Sound](pic16f88-adc-sound.X/)
 
 Summary:
 - read potentiometer angle using ADC input
@@ -30,7 +30,7 @@ Details:
 - please visit folder [pic16f88-adc-sound.X/](pic16f88-adc-sound.X/) and
   read the [README](pic16f88-adc-sound.X/README.md) file for details.
 
-## Project: PIC16F88 matrix LCD
+## Project: [PIC16F88 matrix LCD](pic16f88-matrix-lcd.X/)
 
 Summary:
 - displays whole character set (from 0x00 to 0xff) on LCD matrix display 16.x
@@ -43,11 +43,11 @@ Detail of display:
 
 Used Hardware:
 - [DM163045][DM163045] - `PICDEM Lab Development Kit`
-- [PIC16F88][PIC16F88] (inclucded with selected versions of PICDEM kit)
+- [PIC16F88][PIC16F88] (included with selected versions of PICDEM kit)
 - [MC16011A][MC16011A] matrix LCD display 16x1 with "CPU" interface - not included
 
 Details:
-- please vist folder [pic16f88-matrix-lcd.X/](pic16f88-matrix-lcd.X/) and
+- please visit folder [pic16f88-matrix-lcd.X/](pic16f88-matrix-lcd.X/) and
   read the [README](pic16f88-matrix-lcd.X//README.md) file for details.
 
 
