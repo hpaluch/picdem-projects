@@ -44,6 +44,10 @@ Done:
 - Enumerates all characters and their HEX values
 - output is *like* printf `ASCII: %c 0x%02x`
 
+# Navigation
+
+Go [back to project page](../../..).
+
 [AN594]: https://www.microchip.com/en-us/application-notes/an594 "Using the CCP Module(s)"
 [DM163045]: http://www.microchip.com/Developmenttools/ProductDetails/DM163045 "PICDEM Lab Development Kit"
 [PIC10F206]: https://www.microchip.com/en-us/product/PIC10F206
