@@ -1,7 +1,9 @@
 /*
  * File:   pic16f88_matrix_lcd.c
- * Summary: PIC16F88 connected to matrix LCD MC16011A
- *   The LCD is weird - it is 16x1 but characters are addressed as 8x2
+ * Summary: PIC16F88 connected to matrix 1x16 LCD MC16011A
+ * Function:
+ *   - enumerates all characters on display as "ASCII: %c 0x%02x"
+ *   - blinks LED on RB5
  * Used PINs:
  *   - RB5/SS/TX/CK/PIN11 - blinking LED using Timer1
  *  for LCD:
@@ -35,11 +37,11 @@
 // port I/O function on both RA6/OSC2/CLKO pin and RA7/OSC1/CLKI pin)
 #pragma config FOSC = INTOSCIO
 #pragma config WDTE = OFF       // Watchdog Timer Enable bit (WDT disabled)
-#ifdef __DEBUG
+//#ifdef __DEBUG
 #pragma config PWRTE = OFF       // Power-up Timer Enable bit (PWRT disabled fo debug)
-#else
-#pragma config PWRTE = ON       // Power-up Timer Enable bit (PWRT enabled)
-#endif
+/*#else
+ #pragma config PWRTE = ON       // Power-up Timer Enable bit (PWRT enabled)
+ #endif*/
 #pragma config MCLRE = ON       // RA5/MCLR/VPP Pin Function Select bit (RA5/MCLR/VPP pin function is MCLR)
 #pragma config BOREN = ON       // Brown-out Reset Enable bit (BOR enabled)
 #pragma config LVP = OFF        // Low-Voltage Programming Enable bit (RB3 is digital I/O, HV on MCLR must be used for programming)
@@ -145,22 +147,9 @@ void LCD_send_cmd(u8 cmd)
     PORTA = vPORTA;
 }
 
-void LCD_send_data(u8 cmd)
-{
-    vPORTA &= (u8) ~ (oLCD_E_MASK | oLCD_RS_MASK | oLCD_RW_MASK);
-    vPORTA |= oLCD_RS_MASK;
-    PORTA = vPORTA;
-    LCD_data_output_mode(cmd);
-    LCD_strobe();
-    __delay_ms(2); // required when we are not checking BF (Busy Flag)
-    // set all signals to idle mode
-    vPORTA &= (u8) ~ (oLCD_E_MASK | oLCD_RS_MASK | oLCD_RW_MASK);
-    PORTA = vPORTA;
-}
-
 // Function Set:
 // 0 0 1 DL  N F x x
-// 0 0 1 1   0 0 0 0 => 0x30
+// 0 0 1 1   8 0 0 0 => 0x38 (our 16x1 display use 8x2 addressing)
 #define LCD_FN_SET 0x38
 
 void LCD_init(void)
@@ -171,8 +160,6 @@ void LCD_init(void)
     // 1. Wait for more than 15 ms after VCC rises to 4.5 V
     __delay_ms(100);
     // Function Set:
-    // 0 0 1 DL  N F x x
-    // 0 0 1 1   0 0 0 0 => 0x30
     LCD_set_data(LCD_FN_SET);
     LCD_strobe();
     // 2. Wait for more than 4.1 ms
@@ -188,8 +175,50 @@ void LCD_init(void)
     LCD_send_cmd( 0x01 ); // clear screen and reset position
 }
 
+void LCD_setpos(u8 pos)
+{
+    pos |= 0x80;
+    LCD_send_cmd(pos);
+}
+
+void LCD_putc(u8 c)
+{
+    vPORTA &= (u8) ~ (oLCD_E_MASK | oLCD_RS_MASK | oLCD_RW_MASK);
+    vPORTA |= oLCD_RS_MASK;
+    PORTA = vPORTA;
+    LCD_data_output_mode(c);
+    LCD_strobe();
+    __delay_ms(2); // required when we are not checking BF (Busy Flag)
+    // set all signals to idle mode
+    vPORTA &= (u8) ~ (oLCD_E_MASK | oLCD_RS_MASK | oLCD_RW_MASK);
+    PORTA = vPORTA;
+}
+
+u8 HEX_digit_to_ascii(u8 digit)
+{
+    digit &= 0x0f;
+    if (digit < 10){
+        return '0'+digit;
+    }
+    return 'A'+(digit-10);
+}
+
+void LCD_put_hexbyte(u8 val)
+{
+    LCD_putc(HEX_digit_to_ascii( (val >> 4) & 0x0f  ));
+    LCD_putc(HEX_digit_to_ascii( val & 0x0f  ));
+}
+
+void LCD_puts(const char *str)
+{
+    const char *p;
+    for(p=str;*p != '\0';p++){
+        LCD_putc(*p);
+    }
+}
+
 void main(void) {
-    u8 c=0;
+    u8 c='!';
     vPORTA = 0;
     vPORTB = 0;
     PORTA = 0;
@@ -207,12 +236,8 @@ void main(void) {
     while(OSCCONbits.IOFS == 0){/*nop*/};
 
     LCD_init();
-    for(c='!';c<=('!'+5);c++){
-        LCD_send_data(c);
-        if (c==('!'+2)){
-            LCD_send_cmd(0x80+0x40); // set DRAM address to 2nd line
-        }
-    }  
+    LCD_setpos(0);
+    LCD_puts("Init...");
     
     TMR0 = 0;   // defined state for TMR0
     // setup OPTION_REG
@@ -220,10 +245,24 @@ void main(void) {
     OPTION_REG = _OPTION_REG_nRBPU_MASK|0x7;     
     INTCONbits.TMR0IF = 0;
     INTCONbits.TMR0IE = 1;  // enable interrupts for Timer0
-    ei();                   // enable all interrupts     
+    ei();                   // enable all interrupts
+    LCD_setpos(0);
+    LCD_puts("ASCII: ");
+    LCD_putc(c);
+    LCD_setpos(0x40);
+    LCD_puts(" 0x");
+    LCD_put_hexbyte(c);
+    
     while(1){
-        if (counter != oldCounter){
-            // flip LED on every tick
+        if (counter != oldCounter && (counter & 0xf) == 0xf){
+            // put ascii char
+            LCD_setpos(7);
+            c++;
+            LCD_putc(c);
+            LCD_setpos(0x43);
+            LCD_put_hexbyte(c);
+            
+            // flip LED on every char change
             vPORTB ^= oLED_MASK;
             PORTB = vPORTB;
             oldCounter = counter;
