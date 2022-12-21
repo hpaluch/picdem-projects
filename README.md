@@ -77,6 +77,8 @@ period by 1us  steps (2 times longer). Here is scope from `RA6/OSC2/CLKO/PIN15`:
 
 Project goal: to control matrix 16x1 matrix LCD [MC16011A][MC16011A] from  [PIC16F88][PIC16F88].
 
+![PIC16F88 with LCD 16x1](https://raw.githubusercontent.com/hpaluch/picdem-projects/master/pic16f88-matrix-lcd.X/assets/pic16f88-lcd.jpg)
+
 I bought this display around 20 years ago:
 
 ![MC16011A LCD 16x1 - Top](https://raw.githubusercontent.com/hpaluch/picdem-projects/master/assets/mc16011a-top.jpg)
