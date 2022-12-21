@@ -30,7 +30,7 @@ Details:
 - please visit folder [pic16f88-adc-sound.X/](pic16f88-adc-sound.X/) and
   read the [README](pic16f88-adc-sound.X/README.md) file for details.
 
-# Project: PIC16F88 matrix LCD
+## Project: PIC16F88 matrix LCD
 
 Summary:
 - displays whole character set (from 0x00 to 0xff) on LCD matrix display 16.x
