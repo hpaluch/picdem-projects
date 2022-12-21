@@ -5,6 +5,7 @@ Makefile text eol=lf
 /ExpressPCB/**/*.s binary
 # ExpressPCB packages
 *.p
+# images
 *.png binary
 *.jpg binary
 # ExpressPCB

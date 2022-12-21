@@ -75,11 +75,21 @@ period by 1us  steps (2 times longer). Here is scope from `RA6/OSC2/CLKO/PIN15`:
 
 # Project: PIC16F88 matrix LCD
 
-Project goal: to control matrix LCD from  [PIC16F88][PIC16F88].
+Project goal: to control matrix 16x1 matrix LCD [MC16011A][MC16011A] from  [PIC16F88][PIC16F88].
+
+I bought this display around 20 years ago:
+
+![MC16011A LCD 16x1 - Top](https://raw.githubusercontent.com/hpaluch/picdem-projects/master/assets/mc16011a-top.jpg)
+
+![MC16011A LCD 16x1 - Bottom](https://raw.githubusercontent.com/hpaluch/picdem-projects/master/assets/mc16011a-bottom.jpg)
+
+
+Details:
 - project [pic16f88-matrix-lcd.X/](pic16f88-matrix-lcd.X/)
 - LCD display: [MC16011A][MC16011A]
   - probably uses chip: [HD44780][HD44780]
-  - it is 16x1 character display operating as 8x2 (huh!)
+  - it is 16x1 character display operating as 8x2 - see last image from
+    - http://www.everbouquet.com.tw/MC16011A.html
 - Existing PIC LCD projects:
   - https://web.archive.org/web/20010212034722/http://home.iae.nl/users/pouweha/lcd/lcd2.shtml
   - https://www.microchip.com/en-us/application-notes/an587
