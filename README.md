@@ -100,9 +100,8 @@ Details:
     board seems to usae similar display)
 
 Done:
-- display init and shows few characters...
-TODO:
-- make transparent routines to deal with 16x1 addressed 8x2 problem.
+- Enumerates all characters and their HEX values
+- output is *like* printf `ASCII: %c 0x%02x`
 
 # List of MCUs
 
