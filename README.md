@@ -50,6 +50,32 @@ Details:
 - please visit folder [pic16f88-matrix-lcd.X/](pic16f88-matrix-lcd.X/) and
   read the [README](pic16f88-matrix-lcd.X//README.md) file for details.
 
+# My other projects with PICDEM board
+
+Here is list of my PICDEM board projects that are hosted elsewhere:
+* https://github.com/hpaluch/pic16f88-adc-pwm
+  - PIC16F88, ADC (to read potentiometer value), and set LED brightness using PWM
+* https://github.com/hpaluch/pic16f88-comp-ccp-ex.X
+  - PIC16F88 using comparator and Capture to detect signal period - NOT finished
+* https://github.com/hpaluch/temp_meter_16f630
+  - temperature meter with PIC16F630, DS18B20 1-wire temp sensors and 2 segment LED display
+  - moved from bitbucket.org, because they busted Mercurial SCM
+* https://github.com/hpaluch/sound10f206.x
+  - generate sound with 10F206
+  - moved from bitbucket.org, because they busted Mercurial SCM
+* https://github.com/hpaluch/motor_pic10f206
+  - PIC10F206 drive motor using Software pwm
+  - moved from bitbucket.org, because they busted Mercurial SCM
+* https://bitbucket.org/hpaluch/pic16f88-demo.x/src/master/
+  - PIC1688 UART example - control LED from PC with Putty, requires "USB Console cable"
+    (USB virtual COM port with TTL(!) pinout)
+  - Assembler version
+* https://bitbucket.org/hpaluch/pic16f88-c-demo.x/src
+  - PIC1688 UART example - control LED from PC with Putty, requires "USB Console cable"
+    (USB virtual COM port with TTL(!) pinout)
+  - C version
+* https://bitbucket.org/hpaluch/pic-usb-serial/src/master/
+  - PIC16F206 and Software UART transmitter (only).
 
 # List of MCUs
 
