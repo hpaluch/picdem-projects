@@ -1,7 +1,7 @@
 # Project: PIC16F88 matrix LCD
 
 Summary:
-- displays whole character set (from 0x00 to 0xff) on LCD matrix display 16.x
+- displays whole character set (from 0x00 to 0xff) on LCD 16x1 matrix display MC16011A
 
 Used Hardware:
 - [DM163045][DM163045] - `PICDEM Lab Development Kit`

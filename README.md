@@ -33,7 +33,7 @@ Details:
 ## Project: [PIC16F88 matrix LCD](pic16f88-matrix-lcd.X/)
 
 Summary:
-- displays whole character set (from 0x00 to 0xff) on LCD matrix display 16.x
+- displays whole character set (from 0x00 to 0xff) on LCD 16x1 matrix display MC16011A
 
 ![PIC16F88 with LCD 16x1](https://raw.githubusercontent.com/hpaluch/picdem-projects/master/pic16f88-matrix-lcd.X/assets/pic16f88-lcd.jpg)
 
@@ -67,11 +67,11 @@ Here is list of my PICDEM board projects that are hosted elsewhere:
   - PIC10F206 drive motor using Software pwm
   - moved from bitbucket.org, because they busted Mercurial SCM
 * https://bitbucket.org/hpaluch/pic16f88-demo.x/src/master/
-  - PIC1688 UART example - control LED from PC with Putty, requires "USB Console cable"
+  - PIC16F88 UART example - control LED from PC with Putty, requires "USB Console cable"
     (USB virtual COM port with TTL(!) pinout)
   - Assembler version
 * https://bitbucket.org/hpaluch/pic16f88-c-demo.x/src
-  - PIC1688 UART example - control LED from PC with Putty, requires "USB Console cable"
+  - PIC16F88 UART example - control LED from PC with Putty, requires "USB Console cable"
     (USB virtual COM port with TTL(!) pinout)
   - C version
 * https://bitbucket.org/hpaluch/pic-usb-serial/src/master/
@@ -89,6 +89,11 @@ My revised PICDEM board additionally includes these MCUs:
 * [PIC16F630][PIC16F630]
 * [PIC16F690][PIC16F690]
 * [PIC16F88][PIC16F88] - my favorite, has ICD (hardware debugger support)
+
+Additionally I have also:
+* [PIC16F84][PIC1684] - legend that I started with around '98 (under DOS using DIY RS232 port programmer published
+  by Sam J. Engström)
+* [PIC16F819][PIC16F819]
 
 # Notes
 
@@ -112,6 +117,8 @@ Workaround is to double `\` which however breaks TeX syntax...
 [PIC16F616]: https://www.microchip.com/en-us/product/PIC16F616 
 [PIC16F630]: https://www.microchip.com/en-us/product/PIC16F630
 [PIC16F690]: https://www.microchip.com/en-us/product/PIC16F690
+[PIC16F819]: https://www.microchip.com/en-us/product/PIC16F819
+[PIC16F84]: https://www.microchip.com/en-us/product/PIC16F84
 [PIC16F88]: https://www.microchip.com/wwwproducts/en/PIC16F88 "PIC16F88 Overview"
 [ExpressPCB]:  https://www.expresspcb.com/pcb-cad-software/
 
