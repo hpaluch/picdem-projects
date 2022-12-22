@@ -64,6 +64,15 @@ My revised PICDEM board additionally includes these MCUs:
 * [PIC16F690][PIC16F690]
 * [PIC16F88][PIC16F88] - my favorite, has ICD (hardware debugger support)
 
+# Notes
+
+It was observed that pull-up resistor (value from 4.7 kOhm to 10 kOhm - as recommended by PicKit3 docs)
+from `/MCRL` to `Vdd` (+5V) is *required for proper power-up startup* (especially with disconnected PicKit3)!
+
+See also https://ww1.microchip.com/downloads/aemtest/OTH/ProductDocuments/UserGuides/52116A.pdf,
+DS52116A-page 22, 2.5.2 Target Connection Circuitry, FIGURE 2-4: STANDARD CONNECTION TARGET CIRCUITRY
+
+
 # Other notes
 
 GitHub.com incorrectly parses TeX spacing characters in inline math (`$ ... $`), for example `$1 \, s$`
